@@ -5,7 +5,7 @@ Machine learning algorithms are becoming an increasingly important aspect of ana
 ### Issue #1 - Limited Photo Types for Proof of Concept
 The photographs used to demonstrate the methods have clearly defined color palletes that can easily be selected by humans. Below you can see the example images used for tutorials from <a href="https://buzzrobot.com/dominant-colors-in-an-image-using-k-means-clustering-3c7af4622036">Buzzrobot</a>, <a href="https://www.dataquest.io/blog/tutorial-colors-image-clustering-python/">DataQuest</a>, and <a href="https://towardsdatascience.com/extracting-colours-from-an-image-using-k-means-clustering-9616348712be">Towards Data Science</a>. As you  can see the resulting clusters are very easy to identify and would provide very clean datasets that we can't assume we would find in other photos. That begs the question what about the many pictures taken that do not fit that narrow mold? How can we be sure that these methods work as a more general solution?
 
-<img src='/static/buzzrobot.jpeg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
+<img src='/static/buzzrobot.jpg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
 
 
 ### Issue #2 - Manual User Input

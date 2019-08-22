@@ -53,7 +53,7 @@ The function `adapt_array(array)` takes in a numpy array and returns it as a bin
 
 ### Pushshift API Query
 
-Now that we have our database set up, we must find our images to download. As mentioned previously we will be scraping photos from our targeted Subreddits so first we must find the posts themselves. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit. I've created a class called `PS_Interface` to handle interactions with the API.
+Now that we have our database set up, we must find our images to download. As mentioned previously we will be scraping photos from our targeted Subreddits so first we must find the posts themselves. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, most of them are for uses outside of the scope of this project. Here we will focus on the `SubmissionCallByScore` method.
 
 ```Python
 class PSInterface:
@@ -62,20 +62,19 @@ class PSInterface:
 
     def SubmissionCallByScore(self, count, subreddit):
         entries = []
-        url = urlGen("submission")
+        url = self.urlGen("submission")
         current_entires = [x[0] for x in DBC.new_query('''SELECT id FROM submissions WHERE subreddit = '{}' '''.format(sub))]
+        
         new_score = 999999999
-
         while len(entries) < count:
             payload = {"subreddit": subreddit, "sort_type": "score", "score": "<"+str(new_score), "size": 500}
             api_request = r.get(url, payload)
-
-            call_data = json.loads(api_request.text)['data']
-            time.sleep(3)
             status_code = api_request.status_code
 
 
             if status_code == 200:
+                call_data = json.loads(api_request.text)['data']
+                time.sleep(3)
                 for entry in call_data:
                     if entry['id'] not in current_entires:
                         entries.append(entry)
@@ -86,11 +85,11 @@ class PSInterface:
                 else:
                     new_score = entries[-1]['score']
             else:
-                print("[API Message] Error calling Pushshift API.")
+                print("[API Message] Error calling Pushshift API with status code " + str(status_code))
                 time.sleep(5)
 
             if len(entries) > count:
                 return entries[:count]
 ```  
-
+The method `SubmissionCallByScore` takes in the subreddit of interest and the number of posts you want returned.
 

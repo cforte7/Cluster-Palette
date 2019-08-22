@@ -24,6 +24,10 @@ class DB(object):
 
         self._conn = sqlite3.connect("PhotoClusters.db",detect_types=sqlite3.PARSE_DECLTYPES)
         self.c = self._conn.cursor()
+        self.schema = {'submissions':'''CREATE TABLE submissions (ID text PRIMARY KEY, Title text,URL text,URLDomain text,Subreddit text,SubredditID text,PostURL text,PostTime BIGINT, PostAuthor text, PostScore INTEGER)''',
+                   'photos':'''CREATE TABLE photos (id TEXT PRIMARY KEY, filename TEXT, subreddit TEXT, size INT, path TEXT)''',
+                   'clusters':'''CREATE TABLE clusters (file text PRIMARY KEY, subreddit text, picture_array array, bandwidth REAL, labels array, clusters array, weights array)'''
+                  }
 
     def __del__(self):
         print("[DB Message] Closing database connection.")
@@ -46,12 +50,11 @@ class DB(object):
 
 
     def clean_tables(self):
-        prompt = "This will clear all data from submissions. If you want to do this, type 'Delete'"
-        if input(prompt) == "Delete":
-            print("[DB Message] Deleting Table")
-            self.c.execute('''DROP TABLE submissions''')
-            self.c.execute('''CREATE TABLE submissions (ID text PRIMARY KEY, Title text,URL text,URLDomain text,Subreddit text,SubredditID text,PostURL text,PostTime BIGINT, PostAuthor text, PostScore INTEGER)''')
-            print("[DB Message] Table deleted")
-db = DB()
+        prompt = input("[DB Message] Please enter name of the table you want to clear: ")
+        
+        if prompt in self.schema:
+            print("[DB Message] Deleting Table "+prompt)
+            self.c.execute("DROP TABLE "+prompt)
+            print("[DB Message] Table " + prompt +" deleted")
+            self.new_query(self.schema[prompt])
 
-# db.new_query('''CREATE TABLE submission (ID text PRIMARY KEY, Title text,URL text,URLDomain text,Subreddit text,SubredditID text,PostURL text,PostTime BIGINT, PostAuthor text, Score INTEGER)''')

@@ -13,8 +13,19 @@ The photographs used to demonstrate the methods have clearly defined color palle
 In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is. In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
 
 # Purpose
-In this paper I will demonstrate my process of scraping and storing photos from Reddit through the Pushshift API, storing the photos locally along with metadata, applying the Mean Shift Clustering algorithm, analyzing the results and generating color palletes to groupings of photos.
+In this paper I will demonstrate the process of creating color palettes from large groups of photos downloaded from various Subreddits from the website Reddit. For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content. This process will include the following:
+
+1. Query the Pushshift API for the Reddit submissions in the target subreddits.
+2. Download pictures from submissions that are identifited as being image-based.
+3. Apply the Mean Shift Clustering Algorithm and store the results
+4. Analyze the results, create data visualizations and generate color palettes
 
 ## Data Gathering
-Before any analysis can be done, a sufficient amount of data must be gathered. For this applciation we would like to download and store large quantities of photos along with some metadata regarding the pictures.
+Before any analysis can be done, a sufficient amount of data must be gathered. For this applciation we would like to download and store large quantities of photos along with some metadata regarding the pictures. 
+
+The first step is to develop the SQL database schema.
+
+<img src='/static/Cluster-Pallete Schema.png'>
+
+
 

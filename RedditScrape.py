@@ -14,32 +14,29 @@ import sys
 from glob import glob
 
 
-
-def urlGen(endpoint):
-    url = 'https://api.pushshift.io/reddit/search/'+str(endpoint)+'/'
-    return url
-
-
 class PSInterface:
     def __init__(self):
         self.last_time = int(time.time())
-
+    
+    def urlGen(self, endpoint):
+        url = 'https://api.pushshift.io/reddit/search/'+str(endpoint)+'/'
+        return url
+    
     def SubmissionCallByScore(self, count, subreddit):
         entries = []
-        url = urlGen("submission")
+        url = self.urlGen("submission")
         current_entires = [x[0] for x in DBC.new_query('''SELECT id FROM submissions WHERE subreddit = '{}' '''.format(sub))]
+        
         new_score = 999999999
-
         while len(entries) < count:
             payload = {"subreddit": subreddit, "sort_type": "score", "score": "<"+str(new_score), "size": 500}
             api_request = r.get(url, payload)
-
-            call_data = json.loads(api_request.text)['data']
-            time.sleep(3)
             status_code = api_request.status_code
 
 
             if status_code == 200:
+                call_data = json.loads(api_request.text)['data']
+                time.sleep(3)
                 for entry in call_data:
                     if entry['id'] not in current_entires:
                         entries.append(entry)
@@ -50,7 +47,7 @@ class PSInterface:
                 else:
                     new_score = entries[-1]['score']
             else:
-                print("[API Message] Error calling Pushshift API.")
+                print("[API Message] Error calling Pushshift API with status code " + str(status_code))
                 time.sleep(5)
 
             if len(entries) > count:
@@ -58,7 +55,7 @@ class PSInterface:
 
 
     def SubmissionCallByTime(self, payload):
-        url = urlGen("submission")
+        url = self.urlGen("submission")
         api_request = r.get(url,payload)
         status_code = api_request.status_code
 
@@ -76,7 +73,7 @@ class PSInterface:
             return 0
 
     def apiCommentCall(self, post, nest_level):
-        url = urlGen('comment')
+        url = self.urlGen('comment')
         payload = {'link_id': post, 'size': 500,"nest_level": nest_level}
         api_request = r.get(url, payload)
         sub_comments = []
@@ -160,24 +157,7 @@ class PhotoClustering:
         except:
             print("[Photo Clustering] Error " + str(sys.exc_info()[0]) + "has occurred on photo "+file)
 
-## Database Tables
-# Table: submissions
-#(ID text PRIMARY KEY,
-# Title text,
-# URL text,
-# URLDomain text,
-# Subreddit text,
-# SubredditID integer,
-# PostURL text,
-# PostTime BIGINT,
-# PostAuthor text,
-# Score INTEGER)
 
-# Table: photos
-# (filename TEXT PRIMARY KEY,
-# subreddit TEXT,
-# size INT,
-# path TEXT)
 
 if __name__ == "__main__":
     a = PSInterface()
@@ -185,9 +165,8 @@ if __name__ == "__main__":
     Pic = PictureDownload('D:/PhotoDB/')
     PC = PhotoClustering()
 
+    
     ### Call for submissions from PushShift API and store in submissions table
-    ##
-    #
 
     subs = [x[0] for x in DBC.new_query('''SELECT DISTINCT Subreddit FROM submissions''')]
     target_vals = ['id', 'title', 'url', 'domain', 'subreddit', 'subreddit_id', 'full_link', 'created_utc', 'author','score']
@@ -211,17 +190,8 @@ if __name__ == "__main__":
         DBC.c.executemany("INSERT INTO submissions (ID,Title,URL,URLDomain,Subreddit,SubredditID,PostURL,PostTime,PostAuthor,PostScore) VALUES (?,?,?,?,?,?,?,?,?,?)", data_stage)
         DBC._conn.commit()
 
-    #
-    ##
-    ### End Call for submissions from PushShift API and store in submission DB
-
     ### Download top 50 photos for each target subreddit and store entry in photos DB
-    ##
-    #
-
-    # DBC.new_query("DROP TABLE photos")
-    # DBC.new_query("CREATE TABLE photos (id TEXT PRIMARY KEY, filename TEXT, subreddit TEXT, size INT, path TEXT)")
-    #
+    
     photo_stage = []
     for sub in subs:
         if not os.path.exists("D:/PhotoDB/"+sub):
@@ -240,13 +210,8 @@ if __name__ == "__main__":
     DBC.c.executemany("INSERT INTO photos (id, filename, subreddit, size, path) VALUES (?,?,?,?,?)", photo_stage)
     DBC._conn.commit()
 
-    #
-    ##
-    ### End Download top 50 photos for each target subreddit and store entry in photos DB
 
     ### Delete photos that are "photo was deleted" thumbnail from imgur
-    ##
-    #
 
     error_paths = [x[0] for x in DBC.new_query("SELECT path FROM photos where size < 3000")]
     for x in error_paths:
@@ -259,17 +224,9 @@ if __name__ == "__main__":
     error_paths = [x[0] for x in DBC.new_query("SELECT path FROM photos where size < 3000")]
     print("Count of error photos:" + str(len(error_paths)))
 
-    #
-    ##
-    ### End Delete photos that are "photo was deleted" thumbnail from imgur
 
 
     ### Run Mean Shift Clustering algorithm on downloaded photos
-    ##
-    #
-
-    #DBC.new_query("DROP TABLE clusters")
-    #DBC.new_query("CREATE TABLE clusters (file text PRIMARY KEY, subreddit text, picture_array array, bandwidth REAL, labels array, clusters array, weights array)")
 
     cluster_stage = []
     photo_paths = [(x[0],x[1]) for x in DBC.new_query('''SELECT path, subreddit FROM photos WHERE filename NOT IN (SELECT file FROM clusters) ''')]
@@ -281,9 +238,7 @@ if __name__ == "__main__":
             print("[DB Message] Error "+str(sys.exc_info())+"when inserting clustering row for file "+str("file"))
         DBC._conn.commit()
 
-    #
-    ##
-    ###
+  
 
 
 

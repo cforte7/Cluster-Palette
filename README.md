@@ -74,7 +74,7 @@ class PSInterface:
 
             if status_code == 200:
                 call_data = json.loads(api_request.text)['data']
-                time.sleep(3)
+                time.sleep(1)
                 for entry in call_data:
                     if entry['id'] not in current_entires:
                         entries.append(entry)
@@ -91,5 +91,11 @@ class PSInterface:
             if len(entries) > count:
                 return entries[:count]
 ```  
-The method `SubmissionCallByScore` takes in the subreddit of interest and the number of posts you want returned.
+The method `SubmissionCallByScore` has two arguments:
+* `count` - the number of posts you want added to the database
+* `subreddit` - the subreddit you want the posts from
+
+The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are then updated based on the lowest score post in the request and a new request is made. This continues until we have collected enough submissions to satisfy our `count` and then a list of the submissions are returned.
+
+
 

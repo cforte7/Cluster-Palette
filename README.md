@@ -53,7 +53,7 @@ The function `adapt_array(array)` takes in a numpy array and returns it as a bin
 
 ### Pushshift API Query
 
-Now that we have our database set up, we must find our images to download. As mentioned previously we will be scraping photos from our targeted Subreddits so first we must find the posts themselves. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, most of them are for uses outside of the scope of this project. Here we will focus on the `SubmissionCallByScore` method.
+Now that we have our database set up, we must find our images to download. As mentioned previously we will be scraping photos from our targeted Subreddits so first we must find the posts themselves. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit and receive the data in JSON. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, most of them are for uses outside of the scope of this project. Here we will focus on the `SubmissionCallByScore` method.
 
 ```Python
 class PSInterface:
@@ -95,7 +95,6 @@ The method `SubmissionCallByScore` has two arguments:
 * `count` - the number of posts you want added to the database
 * `subreddit` - the subreddit you want the posts from
 
-The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are then updated based on the lowest score post in the request and a new request is made. This continues until we have collected enough submissions to satisfy our `count` and then a list of the submissions are returned.
-
+The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are then updated based on the lowest score post in the request and a new request is made. This update and query process continues until we have either collected enough submissions to satisfy our `count` or have run out of submissions. Once one of those two occur, we return the list of submissions. 
 
 

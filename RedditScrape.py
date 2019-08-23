@@ -22,7 +22,7 @@ class PSInterface:
         url = 'https://api.pushshift.io/reddit/search/'+str(endpoint)+'/'
         return url
     
-    def SubmissionCallByScore(self, count, subreddit):
+    def submission_call_by_score(self, count, subreddit):
         entries = []
         url = self.urlGen("submission")
         current_entires = [x[0] for x in DBC.new_query('''SELECT id FROM submissions WHERE subreddit = '{}' '''.format(sub))]
@@ -166,13 +166,12 @@ if __name__ == "__main__":
     PC = PhotoClustering()
 
     
-    ### Call for submissions from PushShift API and store in submissions table
-
+    # Call for submissions from PushShift API and store in submissions table
     subs = [x[0] for x in DBC.new_query('''SELECT DISTINCT Subreddit FROM submissions''')]
     target_vals = ['id', 'title', 'url', 'domain', 'subreddit', 'subreddit_id', 'full_link', 'created_utc', 'author','score']
-    #DBC.clean_tables()
+    
     for sub in subs:
-        api_call = a.SubmissionCallByScore(500,sub)
+        api_call = a.submission_call_by_score(500,sub)
         data_stage = []
 
         for x in api_call:

@@ -184,5 +184,96 @@ Similar to our process when querying the Pushshift API, we will iterate through 
 * The submission url ends in ```.png```, ```.jpg```, or ```.jpeg``` 
 * The photo has not been downloaded already
 
-Based on this query we now have a list of the photos that we need to download so we iterate through this list, download the photos, and store an entry in the ```photos``` database for each photo. Now that we have 
+Based on this query we now have a list of the photos that we need to download so we iterate through this list, download the photos, and store an entry in the ```photos``` database for each photo. 
+
+
+### Clustering Analysis
+
+Continuing our theme of Class structure and application extenstion we will now examine our ```PhotoClustering``` Class and it's usage in ```main()```. 
+
+
+```python
+class PhotoClustering:
+    def __init__(self):
+        pass
+
+    def mean_Clusters(self, pic_path, subreddit):
+        file = pic_path.split("\\")[-1]
+        print("[Photo Clustering] Running Mean Shift Algorithm on photo "+file)
+
+
+        try:
+            pic = Image.open(pic_path)
+            pic_array = np.asarray(pic)
+            I = np.copy(pic_array)
+            h, w, p = I.shape
+
+            # Drop 4th value in each pixel if present
+            if p == 4:
+                I = I[:,:,:3]
+                p = 3
+
+            I = np.reshape(I, (h * w, p))
+            np.random.shuffle(I)
+            I = I[:5000]
+            I = color.rgb2lab([I])[0]
+            
+            bandwidth = estimate_bandwidth(I)
+            ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, n_jobs=-1)
+            cluster_counts = ms.fit_predict(I)
+            meanshift_fit = ms.fit(I)
+            cluster_centers_ms = meanshift_fit.cluster_centers_
+            labels = ms.labels_
+            cluster_wgts = np.unique(cluster_counts, return_counts=True)[1]
+            print("[Photo Clustering] Successful clustering for file "+file)
+            return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
+
+        except:
+            print("[Photo Clustering] Error " + str(sys.exc_info()[0]) + "has occurred on photo "+file)
+```
+
+In our class we have one method ```mean_clusters(self, pic_path, subreddit)``` with two parameters
+* ```pic_path``` - the path to the file that the script will open
+* ```subreddit``` - the subreddit that the picture is sourced from
+
+
+```python
+ pic = Image.open(pic_path)
+ pic_array = np.asarray(pic)
+ I = np.copy(pic_array)
+ ```           
+The first step in our method is to open the specified file. We then convert the data for the picture to a numpy array and create a copy of the array. While this may seem like an unneeded step at first, the numpy array when read from the image is not writeable and an error occurs when we try to perform any manipulations. To overcome this we create a deep copy with the ```np.copy(pic_array)``` function. 
+
+
+```python
+h, w, p = I.shape
+
+# Drop 4th value in each pixel if present
+if p == 4:
+    I = I[:,:,:3]
+    p = 3
+I = np.reshape(I, (h * w, p))
+np.random.shuffle(I)
+I = I[:5000]
+I = color.rgb2lab([I])[0]
+ ```
+ Once we have our mutable numpy array we must perform some basic manipulations to prepare our data for the analysis. The first step is to store the shape of the photo and check for the dimensions. If the third dimension is 4, this means that the photo has its pixels stored in RGBA (A stands for Alpha, or transparency). If the alpha channel is present in the image, we will drop that dimension and update our ```p``` dimension to 3. We then reshape the array so that it becomes a two dimensional array with ```h*w``` rows and 3 columns. We then shuffle the rows and take the first 5000 rows in order to take a random sample of pixels from the photos. Once we have our sample set of data we call the ```color.rgb2lab()``` function from the scikit image module to convert the data from RGB values to LaB values. We make this conversion because when visualizing pixels in 3D space, the Lab space is much more suited to how the human eye perceives colors compared to RGB (another pitfall of comparable papers on this topic). <a href src ='https://en.wikipedia.org/wiki/CIELAB_color_space'>For more information regarding Lab Color Space you can read the Wikipedia page.</a>
+ 
+ 
+ ```python
+bandwidth = estimate_bandwidth(I)
+ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, n_jobs=-1)
+cluster_counts = ms.fit_predict(I)
+meanshift_fit = ms.fit(I)
+cluster_centers_ms = meanshift_fit.cluster_centers_
+labels = ms.labels_
+cluster_wgts = np.unique(cluster_counts, return_counts=True)[1]
+print("[Photo Clustering] Successful clustering for file "+file)
+return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
+```
+
+With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper.
+
+
+
 

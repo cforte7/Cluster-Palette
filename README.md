@@ -31,7 +31,7 @@ The first step is to develop the SQL database schema.
 
 <img src='/static/Cluster-Pallete Schema.png'>
 
-In order to manage this database I created a python file `DB_Maintain.py` that contains a class to handle the required database functions. Most of the functionality is fairly straight forward so I will not go into to much detail on it, but something worth noting is the handling of numpy arrays for storage. As noted in the database schema, the `clusters` table has columns with datatype `numpy_array`. Since this is not a standard SQL datatype, it must be stored as a binary object (BLOB) and there are some additional steps needed to handle this. In the `DB_Maintain.py` file we must outline the specific conversion process between a binary object and a numpy array and vice versa.
+In order to manage this database I created a python file `DB_Maintain.py` that contains a class to handle the required database functions. Most of the functionality is fairly straight forward so I will not go into to much detail on it, but something worth noting is the handling of numpy arrays for storage. In the database schema, the `clusters` table has columns with datatype `numpy_array`. Since this is not a standard SQL datatype, it must be stored as a binary object (BLOB) and there are some additional steps needed to handle this. In the `DB_Maintain.py` file we must outline the specific conversion process between a binary object and a numpy array and vice versa.
 
 ```python
 def adapt_array(array):
@@ -49,11 +49,11 @@ sqlite3.register_adapter(np.ndarray, adapt_array)
 sqlite3.register_converter("array", convert_array)
 ```
 
-The function `adapt_array(array)` takes in a numpy array and returns it as a binary object and the function `convert_array(string)` takes in the binary object and returns a numpy array. The last two lines signal to our database that these are the functions to be run automatically when working with a column designated as an `array` type. With this in place we can pass numpy arrays to our insert statement without any issue and when reading data we will be passed a numpy array instead of a binary object.
+The function `adapt_array(array)` takes in a numpy array and returns it as a binary object and the function `convert_array(string)` takes in a binary object and returns a numpy array. The last two lines signal to our database that these are the functions to be run  when working with a column designated as an `array` type. With this in place, we can interface with our database using numpy arrays as if they are native data types instead of performing this conversion every interaction.
 
 ### Pushshift API Class
 
-Now that we have our database set up, we must find our images to download. As mentioned previously we will be scraping photos from our targeted Subreddits so first we must find the posts themselves. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit and receive the data in JSON. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, most of them are for uses outside of the scope of this project. Here we will focus on the `SubmissionCallByScore` method.
+Now that we have our database set up, we must find our images to download. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit and receive the data in JSON. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, here we will focus on the `SubmissionCallByScore` method. 
 
 ```Python
 class PSInterface:
@@ -95,9 +95,35 @@ The method `SubmissionCallByScore` has two arguments:
 * `count` - the number of posts you want added to the database
 * `subreddit` - the subreddit you want the posts from
 
-The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are then updated based on the lowest score post in the request and a new request is made. This update and query process continues until we have either collected enough new submissions to satisfy our `count` or have run out of submissions. Once one of those two occur, we return the list of submissions. 
+The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are then updated based on the lowest score post in the request and a new request is made. This update and query process continues until we have either collected enough new submissions to satisfy our `count` or have run out of submissions to query. Once one of those two occur, we return the list of submissions. 
 
-### Pushshift API Usage in Main()
+In order to keep the class scaleable and reusable for future projects, the ```submission_call_by_score``` method (and all other methods) returns a list of dictionaries with all of the data the API provides. For the purposes of this project, we only need a subset of the data retreived in the API call so we will handle this filtering in our ```main()``` function. 
 
 
+```python
+    subs = ["BelowTheDepths","OldSchoolCool","Gardening","Goth","Outrun","TheWayWeWere","Desert"]
+    target_vals = ['id', 'title', 'url', 'domain', 'subreddit', 'subreddit_id', 'full_link', 'created_utc', 'author','score']
+    insert_str = '''INSERT INTO submissions (ID,Title,URL,URLDomain,Subreddit,SubredditID,PostURL,PostTime,PostAuthor,PostScore) 
+        VALUES (?,?,?,?,?,?,?,?,?,?)'''
+        
+    for sub in subs:
+        api_call = a.submission_call_by_score(500,sub)
+        data_stage = []
 
+        for x in api_call:
+            row_stage = []
+            for val in target_vals:
+                data = []
+                if val == 'created_utc' or val == 'score':
+                    row_stage.append(int(x[val]))
+                else:
+                    row_stage.append(str(x[val]))
+
+            data_stage.append(row_stage)
+
+        print("[DB Message] Mass inserting " + str(len(data_stage)) + " submissions for subreddit "+sub)
+        DBC.c.executemany(insert_str, data_stage)
+        DBC._conn.commit()
+```
+
+Before any calls are made we must outline the list of Subreddits that we would like to target and store them in the list ```subs```. Next we establish the target values that we want to store in our database and store this in another list ```target_vals```. First level of our loop is the target subreddit and we use this along with our request count to call the ```submission_call_by_score``` method. Now that we have the requested data, we iterate through the ```target_vals``` and store them either as a ```str``` or as an ```int```  based on the value. Once we have filtered all of our data we will insert the rows into the database using the ```executemany()``` method.

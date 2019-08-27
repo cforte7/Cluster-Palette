@@ -51,7 +51,7 @@ sqlite3.register_converter("array", convert_array)
 
 The function `adapt_array(array)` takes in a numpy array and returns it as a binary object and the function `convert_array(string)` takes in a binary object and returns a numpy array. The last two lines signal to our database that these are the functions to be run  when working with a column designated as an `array` type. With this in place, we can interface with our database using numpy arrays as if they are native data types instead of performing this conversion every interaction.
 
-### Pushshift API Class
+### Calling Pushshift API
 
 Now that we have our database set up, we must find our images to download. <a href src='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit and receive the data in JSON. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, here we will focus on the `SubmissionCallByScore` method. 
 
@@ -127,3 +127,62 @@ In order to keep the class scaleable and reusable for future projects, the ```su
 ```
 
 Before any calls are made we must outline the list of Subreddits that we would like to target and store them in the list ```subs```. Next we establish the target values that we want to store in our database and store this in another list ```target_vals```. First level of our loop is the target subreddit and we use this along with our request count to call the ```submission_call_by_score``` method. Now that we have the requested data, we iterate through the ```target_vals``` and store them either as a ```str``` or as an ```int```  based on the value. Once we have filtered all of our data we will insert the rows into the database using the ```executemany()``` method.
+
+### Photo Scraping
+
+Once we have all of our submissions stored, we must download the photos associated with those submissions. Similar to working with the Pushshift API, a class is created to download the photos and we extend the functionality in ```main```. 
+
+```python
+class PictureDownload:
+    def __init__(self,pic_path):
+        self.pic_path = pic_path
+
+    def download_pics(self, url, photo_id,subreddit):  # download picture from web and save in local folder
+        try:
+            response = r.get(url)
+            filetype = '.' + url.split('.')[-1]
+            if filetype in ['.png', '.jpg']:
+                filename = photo_id + filetype
+                filepath = self.pic_path + subreddit + '/' + filename  # basepath/subreddit/filename
+                print("[Photo Download] Downloading picture from " + str(url))
+                with open(filepath, 'wb') as f:
+                    for chunk in response.iter_content(4096):
+                        f.write(chunk)
+                filesize = os.path.getsize(filepath)
+                photo_info = [photo_id,filename,subreddit,filesize,filepath]
+                return photo_info
+
+        except r.exceptions.ConnectionError:
+            print("[Picture Download] Error Occurred on url "+str(url))
+            pass
+```
+
+Our class ```PictureDownload``` takes one parameter when we instantiate the class ```pic_path```. This parameter will be the path to the directory we want to store our photos in. This class has one method ```download_pics(self, url, photo_id,subreddit)```. The ```url``` parameter specifies the URL that we will download the photo from, ```photo_id``` is a unique identifier for the photo, and ```subreddit``` specifies the subreddit that the photo is sourced from in order to organize the files when we save them locally. The process for the method is fairly straight forward - we make a request for the image, write the file to disk, and return a list with information about the photo that we will store in our ```photos``` database.
+
+We use the following code to apply our class in our ```main``` method:
+```python
+    photo_stage = []
+
+    
+    for sub in subs:
+        if not os.path.exists("D:/PhotoDB/"+sub):
+            os.mkdir("D:/PhotoDB/"+sub)
+            query_str = "SELECT id, URL, Subreddit FROM submissions WHERE Subreddit = '{}' and (URL like '%.png' or URL like '%.jpg')                       and id not in (SELECT id FROM photos WHERE subreddit = '{}') ORDER BY PostScore DESC LIMIT 50;".format(sub,sub)
+        query = DBC.new_query(query_str)
+
+        for x in query:
+            post_id = x[0]
+            URL = x[1]
+            subreddit = x[2]
+            photo_row = Pic.download_pics(URL,post_id,subreddit)
+            photo_stage.append(photo_row)
+
+    DBC.c.executemany("INSERT INTO photos (id, filename, subreddit, size, path) VALUES (?,?,?,?,?)", photo_stage)
+    DBC._conn.commit()
+``` 
+Similar to our process when querying the Pushshift API, we will iterate through our ```subs``` list. Before any photos are downloaded, we check to see if the directory for that subreddit exists and if it does not, then we create one. We next query our database for all of the submissions that meet two criteria:
+* The submission url ends in ```.png```, ```.jpg```, or ```.jpeg``` 
+* The photo has not been downloaded already
+
+Based on this query we now have a list of the photos that we need to download so we iterate through this list, download the photos, and store an entry in the ```photos``` database for each photo. Now that we have 
+

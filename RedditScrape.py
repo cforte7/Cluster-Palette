@@ -169,6 +169,7 @@ if __name__ == "__main__":
     # Call for submissions from PushShift API and store in submissions table
     subs = [x[0] for x in DBC.new_query('''SELECT DISTINCT Subreddit FROM submissions''')]
     target_vals = ['id', 'title', 'url', 'domain', 'subreddit', 'subreddit_id', 'full_link', 'created_utc', 'author','score']
+    insert_str = "INSERT INTO submissions (ID,Title,URL,URLDomain,Subreddit,SubredditID,PostURL,PostTime,PostAuthor,PostScore) VALUES (?,?,?,?,?,?,?,?,?,?)"
     
     for sub in subs:
         api_call = a.submission_call_by_score(500,sub)
@@ -186,7 +187,7 @@ if __name__ == "__main__":
             data_stage.append(row_stage)
 
         print("[DB Message] Mass inserting " + str(len(data_stage)) + " submissions for subreddit "+sub)
-        DBC.c.executemany("INSERT INTO submissions (ID,Title,URL,URLDomain,Subreddit,SubredditID,PostURL,PostTime,PostAuthor,PostScore) VALUES (?,?,?,?,?,?,?,?,?,?)", data_stage)
+        DBC.c.executemany(insert_str, data_stage)
         DBC._conn.commit()
 
     ### Download top 50 photos for each target subreddit and store entry in photos DB

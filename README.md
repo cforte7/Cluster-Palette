@@ -1,3 +1,5 @@
+<img src='/static/Ocean_Lab_Scatter.gif'>
+
 # Background
 
 Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the 3 color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset to find the most prominant colors. While there are various articles and blog posts that accomplish this already, there are two gaps in the methods that I see consistently. 

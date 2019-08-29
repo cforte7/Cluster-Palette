@@ -1,9 +1,8 @@
-<img src='/static/Ocean_Lab_Scatter.gif'>
 
 # Background
 
-Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the 3 color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset to find the most prominant colors. While there are various articles and blog posts that accomplish this already, there are two gaps in the methods that I see consistently. 
-
+Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the three color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset to find the most prominant colors. Below you can see an example of the scatterplot created by taking a random sample of photos from an image. While there are various articles and blog posts that accomplish this already, there are two gaps in the methods that I see consistently. 
+<br> <img src='/static/OceanScatter.gif' width=400> <img src='/static/ocean.jpg' width=400>
 
 ### Issue #1 - Limited Photo Types for Proof of Concept
 The photographs used to demonstrate the methods have clearly defined color palletes that can easily be selected by humans. Below you can see the example images used for tutorials from <a href="https://buzzrobot.com/dominant-colors-in-an-image-using-k-means-clustering-3c7af4622036">Buzzrobot</a>, <a href="https://www.dataquest.io/blog/tutorial-colors-image-clustering-python/">DataQuest</a>, and <a href="https://towardsdatascience.com/extracting-colours-from-an-image-using-k-means-clustering-9616348712be">Towards Data Science</a>. You can reasonably assume that these types of photos with a stark separation of colors will produce clean sets of data with predictable results. This begs the question: what about the many pictures that do not fit this narrow mold? How can we be sure that these methods work as a more general solution?
@@ -11,7 +10,7 @@ The photographs used to demonstrate the methods have clearly defined color palle
 <img src='/static/buzzrobot.jpg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
 
 
-### Issue #2 - Manual User Input
+### Issue #3 - Manual User Input
 In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is. In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
 
 # Purpose
@@ -274,6 +273,6 @@ print("[Photo Clustering] Successful clustering for file "+file)
 return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
 ```
 
-With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability as compared to the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". 
+With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability as compared to the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph taken on the internet has these characteristics. 
 
 

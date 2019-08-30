@@ -10,16 +10,16 @@ The photographs used to demonstrate the methods have clearly defined color palle
 <img src='/static/buzzrobot.jpg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
 
 
-### Issue #3 - Manual User Input
+### Issue #2 - Manual User Input
 In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is. In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
 
 # Purpose
-In this paper I will demonstrate the process of creating color palettes from large groups of photos to aid in design choices. Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating a color palette to help suggest a color scheme for that Subreddit.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
+In this paper I will demonstrate the process of creating color palettes from large groups of photos to aid in design choices. Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating a color palette to help suggest a color scheme based on those photos.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
 
 This process will include the following:
 1. Query the Pushshift API for the Reddit submissions in the target subreddits
 2. Download pictures from submissions that are identifited as being image-based
-3. Apply the Mean Shift Clustering Algorithm and store the results
+3. Apply the Mean Shift Clustering Algorithm to the pictures
 4. Analyze the results, create data visualizations and generate color palettes for each Subreddit based on the clustering results
 
 ## Data Gathering

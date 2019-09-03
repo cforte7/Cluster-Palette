@@ -10,17 +10,17 @@ The photographs used to demonstrate the methods have clearly defined color palle
 <img src='/static/buzzrobot.jpg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
 
 
-### Issue #3 - Manual User Input
+### Issue #2 - Manual User Input
 In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is. In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
 
 # Purpose
-In this paper I will demonstrate the process of creating color palettes from large groups of photos to aid in design choices. Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating a color palette to help suggest a color scheme for that Subreddit.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
+In this paper I will demonstrate the process of visualizing the most prevelant colors from large groups of photos. We will accomplish this by running clustering algorithms on groups of photos and plotting the resulting clusters.  Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating scatter plots.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
 
 This process will include the following:
 1. Query the Pushshift API for the Reddit submissions in the target subreddits
 2. Download pictures from submissions that are identifited as being image-based
 3. Apply the Mean Shift Clustering Algorithm and store the results
-4. Analyze the results, create data visualizations and generate color palettes for each Subreddit based on the clustering results
+4. Analyze the results and create data visualizations for each Subreddit based on the clustering results
 
 ## Data Gathering
 
@@ -273,6 +273,8 @@ print("[Photo Clustering] Successful clustering for file "+file)
 return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
 ```
 
-With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability as compared to the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph taken on the internet has these characteristics. 
+With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability than the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph that we expect to see posted on Reddit will have these characteristics.
+
+Now that we have selected our clutering method, let's take a look at the parameters. Our ```MeanShift``` has one main parameter - the bandwidth. At a high level, the bandwidth refers to the size of the search window that our clustering "neighborhoods" will be produced. The larger the bandwidth provided, the larger the window will be and will lead to fewer, more populated clusters. The scikit-learn package provides a way for us to automate the selection of this parameter with the ```estimate_bandwidth()``` method. 
 
 

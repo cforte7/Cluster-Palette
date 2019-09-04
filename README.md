@@ -275,6 +275,13 @@ return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
 
 With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability than the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph that we expect to see posted on Reddit will have these characteristics.
 
-Now that we have selected our clutering method, let's take a look at the parameters. Our ```MeanShift``` has one main parameter - the bandwidth. At a high level, the bandwidth refers to the size of the search window that our clustering "neighborhoods" will be produced. The larger the bandwidth provided, the larger the window will be and will lead to fewer, more populated clusters. The scikit-learn package provides a way for us to automate the selection of this parameter with the ```estimate_bandwidth()``` method. 
+Now that we have selected our clutering method, let's take a look at the parameters. Our ```MeanShift``` has one main parameter - the bandwidth. To understand the bandwidth, we first have to understand how the Mean Shift Algorithm functions. The algorithm first creates a <A href='https://en.wikipedia.org/wiki/Kernel_density_estimation'>Kernal Density Estimation</a> to estimate the probability distribution function of a set of data. Then once this KDE is generated, the points are then "shifted" to the nearest peak in the KDE to create the clusters. Since the KDE is by definition an estimate, there is no correct way to create this.
+
+
+The bandwidth refers to the size of the search window that our clustering "neighborhoods" will be produced. The larger the bandwidth provided, the larger the window will be and will lead to fewer, more populated clusters. The scikit-learn package provides a way for us to automate the selection of this parameter with the ```estimate_bandwidth()``` method. 
+
+### Results
+
+
 
 

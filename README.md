@@ -275,13 +275,75 @@ return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
 
 With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability than the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph that we expect to see posted on Reddit will have these characteristics.
 
-Now that we have selected our clutering method, let's take a look at the parameters. Our ```MeanShift``` has one main parameter - the bandwidth. To understand the bandwidth, we first have to understand how the Mean Shift Algorithm functions. The algorithm first creates a <A href='https://en.wikipedia.org/wiki/Kernel_density_estimation'>Kernal Density Estimation</a> to estimate the probability distribution function of a set of data. Then once this KDE is generated, the points are then "shifted" to the nearest peak in the KDE to create the clusters. Since the KDE is by definition an estimate, there is no correct way to create this.
+Now that we have selected our clutering method, let's take a look at the parameters. Our ```MeanShift``` class has one main parameter - the bandwidth. To understand the bandwidth, we first have to understand how the Mean Shift Algorithm functions. The algorithm first creates a <A href='https://en.wikipedia.org/wiki/Kernel_density_estimation'>Kernal Density Estimation</a> to estimate the probability distribution function of a set of data. The bandwidth determines the size of the area used to calculate a density for our KDE. As a larget bandwidth is used, our KDE will generate fewer, more populated clusters and vice versa. There is no single correct bandwidth and is entirely dependant on the dataset. Fortunately ```sklearn``` provides a way to automatically generate and bandwidth value based on the data provided and we implement this to further automate our process.
 
-
-The bandwidth refers to the size of the search window that our clustering "neighborhoods" will be produced. The larger the bandwidth provided, the larger the window will be and will lead to fewer, more populated clusters. The scikit-learn package provides a way for us to automate the selection of this parameter with the ```estimate_bandwidth()``` method. 
 
 ### Results
 
+```python
+subs = ['outrun','TheDepthsBelow','TheWayWeWere','autumn']
+for sub in subs:
+    sub_colors = []
+    x = []
+    y = []
+    z = []
+    
+    # Query clusters based on the target subreddit
+    for row in DBC.new_query("SELECT clusters FROM clusters WHERE subreddit = '{}' LIMIT 50".format(sub)):
+
+        # Convert Pixels to RGB for coloring data points and create arrays
+        rgb = color.lab2rgb(([row[0]]))[0]
+        for cluster in row[0]:
+            rgb = color.lab2rgb([[cluster]])[0][0]
+            x.append(cluster[0])
+            y.append(cluster[1])
+            z.append(cluster[2])
+            sub_colors.append(list(rgb))
+
+    # Plotting
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(x,y,z,c=sub_colors, marker='o',alpha=1)
+    plt.title("Cluster Results for Subreddit '{}'".format(sub))
+    ax.set_xlabel("L")
+    ax.set_ylabel("a")
+    ax.set_ylabel("b")
+    
+    # Create and save gif of rotating scatter plot
+    def update(i):
+        ax.view_init(30, i)
+    anim = FuncAnimation(fig,update,frames=[x for x in range(360)],interval=100)
+    anim.save('D:/PhotoDB/Gifs/{}Scatter.gif'.format(sub))
+```
+
+From our clustering results, we can create scatter plots to visualize the data. Below are four subreddits that demonstrate the results along with some example photos used in the analysis.
 
 
+#### Outrun -Dedicated to 80's neon style art 
+<img src='/static/Example Photos/Outrun/6ym9td.png' width=250>
+<img src='/static/Example Photos/Outrun/7lz2xt.jpg' width=250>
+<img src='/static/Example Photos/Outrun/863spl.jpg' width=350>
 
+<img src='/static/Gifs/outrunScatter.gif'>
+
+#### The Depths Below - An Ocean themed subreddit
+
+<img src='/static/Example Photos/TheDepthsBelow/6jn9ar.jpg' width=300>
+<img src='/static/Example Photos/TheDepthsBelow/6owaev.jpg' width=250>
+<img src='/static/Example Photos/TheDepthsBelow/6pgtvp.jpg' width=300>
+
+<img src='/static/Gifs/TheDepthsBelowScatter.gif'>
+
+
+#### The Way We Were  - Old, mostly black and white photos depicting life from the early to mid 20th century
+<img src='/static/Example Photos/TheWayWeWere/7qlm00.jpg' width=250>
+<img src='/static/Example Photos/TheWayWeWere/7riclb.jpg' width=250>
+<img src='/static/Example Photos/TheWayWeWere/8e3eoi.jpg' width=250>
+<img src='/static/Gifs/TheWayWeWereScatter.gif'>
+
+#### Autumn - For lovers of Fall
+<img src='/static/Example Photos/Autumn/8ya73b.jpg' width=200>
+<img src='/static/Example Photos/Autumn/9aiust.jpg' width=200>
+<img src='/static/Example Photos/Autumn/9czbb0.jpg' width=200>
+<img src='/static/Gifs/AutumnScatter.gif'>

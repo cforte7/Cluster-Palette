@@ -13,9 +13,11 @@ for sub in subs:
     x = []
     y = []
     z = []
+    
+    # Query clusters based on the target subreddit
     for row in DBC.new_query("SELECT clusters FROM clusters WHERE subreddit = '{}' LIMIT 50".format(sub)):
 
-
+        # Convert Pixels to RGB for coloring data points and create arrays
         rgb = color.lab2rgb(([row[0]]))[0]
         for cluster in row[0]:
             rgb = color.lab2rgb([[cluster]])[0][0]
@@ -23,7 +25,8 @@ for sub in subs:
             y.append(cluster[1])
             z.append(cluster[2])
             sub_colors.append(list(rgb))
-#
+
+    # Plotting
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -32,6 +35,8 @@ for sub in subs:
     ax.set_xlabel("L")
     ax.set_ylabel("a")
     ax.set_ylabel("b")
+    
+    # Create and save gif of rotating scatter plot
     def update(i):
         ax.view_init(30, i)
     anim = FuncAnimation(fig,update,frames=[x for x in range(360)],interval=100)

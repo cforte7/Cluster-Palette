@@ -321,29 +321,42 @@ From our clustering results, we can create scatter plots to visualize the data. 
 
 
 #### Outrun -Dedicated to 80's neon style art 
+Examples:<br>
 <img src='/static/Example Photos/Outrun/6ym9td.png' width=250>
 <img src='/static/Example Photos/Outrun/7lz2xt.jpg' width=250>
-<img src='/static/Example Photos/Outrun/863spl.jpg' width=350>
-
+<img src='/static/Example Photos/Outrun/863spl.jpg' width=300>
+<br>
+Result:
+<br>
 <img src='/static/Gifs/outrunScatter.gif'>
 
 #### The Depths Below - An Ocean themed subreddit
-
+Examples:<br>
 <img src='/static/Example Photos/TheDepthsBelow/6jn9ar.jpg' width=300>
 <img src='/static/Example Photos/TheDepthsBelow/6owaev.jpg' width=250>
 <img src='/static/Example Photos/TheDepthsBelow/6pgtvp.jpg' width=300>
-
+<br>
+Result:
+<br>
 <img src='/static/Gifs/TheDepthsBelowScatter.gif'>
 
 
 #### The Way We Were  - Old, mostly black and white photos depicting life from the early to mid 20th century
+Examples:<br>
 <img src='/static/Example Photos/TheWayWeWere/7qlm00.jpg' width=250>
 <img src='/static/Example Photos/TheWayWeWere/7riclb.jpg' width=250>
 <img src='/static/Example Photos/TheWayWeWere/8e3eoi.jpg' width=250>
+<br>
+Result:
+<br>
 <img src='/static/Gifs/TheWayWeWereScatter.gif'>
 
 #### Autumn - For lovers of Fall
-<img src='/static/Example Photos/Autumn/8ya73b.jpg' width=200>
-<img src='/static/Example Photos/Autumn/9aiust.jpg' width=200>
-<img src='/static/Example Photos/Autumn/9czbb0.jpg' width=200>
+Examples:<br>
+<img src='/static/Example Photos/Autumn/8ya73b.jpg' width=250>
+<img src='/static/Example Photos/Autumn/9czbb0.jpg' width=250>
+<img src='/static/Example Photos/Autumn/9aiust.jpg' width=250>
+<br>
+Result:
+<br>
 <img src='/static/Gifs/AutumnScatter.gif'>

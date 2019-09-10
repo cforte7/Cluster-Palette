@@ -1,32 +1,35 @@
 
 # Background
 
-Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the three color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset to find the most prominant colors. Below you can see an example of the scatterplot created by taking a random sample of photos from an image. While there are various articles and blog posts that accomplish this already, there are two gaps in the methods that I see consistently. 
-<br> <img src='/static/OceanScatter.gif' width=400> <img src='/static/ocean.jpg' width=400>
+Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the three color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset and using the resulting clusters to determine the most prominant colors. Below you can see an example of the scatterplot created by taking a random sample of pixels from an image. 
+
+<br> <img src='/static/OceanScatter.gif' width=400> <img src='/static/ocean.jpg' width=400><br>
+
+While there are various articles and blog posts that accomplish this already, there are two gaps in the methods that I see consistently.
 
 ### Issue #1 - Limited Photo Types for Proof of Concept
-The photographs used to demonstrate the methods have clearly defined color palletes that can easily be selected by humans. Below you can see the example images used for tutorials from <a href="https://buzzrobot.com/dominant-colors-in-an-image-using-k-means-clustering-3c7af4622036">Buzzrobot</a>, <a href="https://www.dataquest.io/blog/tutorial-colors-image-clustering-python/">DataQuest</a>, and <a href="https://towardsdatascience.com/extracting-colours-from-an-image-using-k-means-clustering-9616348712be">Towards Data Science</a>. You can reasonably assume that these types of photos with a stark separation of colors will produce clean sets of data with predictable results. This begs the question: what about the many pictures that do not fit this narrow mold? How can we be sure that these methods work as a more general solution?
+The photographs used to demonstrate the methods have clearly defined color palletes that can easily be selected by humans. Below you can see the example images used for tutorials from <a href="https://buzzrobot.com/dominant-colors-in-an-image-using-k-means-clustering-3c7af4622036">Buzzrobot</a>, <a href="https://www.dataquest.io/blog/tutorial-colors-image-clustering-python/">DataQuest</a>, and <a href="https://towardsdatascience.com/extracting-colours-from-an-image-using-k-means-clustering-9616348712be">Towards Data Science</a>. You can reasonably assume that these photos with a stark separation of colors will produce clean sets of data with predictable results. This begs the question: what about the many pictures that do not fit this narrow mold? How can we be sure that these methods work as a more general solution?
 
 <img src='/static/buzzrobot.jpg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
 
 
 ### Issue #2 - Manual User Input
-In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is. In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
+In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is? In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
 
 # Purpose
-In this paper I will demonstrate the process of visualizing the most prevelant colors from large groups of photos. We will accomplish this by running clustering algorithms on groups of photos and plotting the resulting clusters.  Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating scatter plots.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
+In this paper I will demonstrate the process of automating the selection of the dominant colors from photos visualizing the results  from groups of photos. We will accomplish this by running clustering algorithms on groups of photos and plotting the resulting clusters.  Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating scatter plots of the clusters that are produced by a given subreddit's photos.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
 
 This process will include the following:
 1. Query the Pushshift API for the Reddit submissions in the target subreddits
 2. Download pictures from submissions that are identifited as being image-based
 3. Apply the Mean Shift Clustering Algorithm and store the results
-4. Analyze the results and create data visualizations for each Subreddit based on the clustering results
+4. Create data visualizations for each Subreddit based on the clustering results
 
 ## Data Gathering
 
 ### Database Setup
 
-Before any analysis can be done, a sufficient amount of data must be gathered. For this applciation we would like to download and store large quantities of photos along with some metadata regarding the pictures. 
+Before any analysis can be done, a sufficient amount of data must be gathered. For this applciation we would like to download and store  photos along with some metadata regarding the pictures. 
 
 The first step is to develop the SQL database schema.
 
@@ -54,7 +57,7 @@ The function `adapt_array(array)` takes in a numpy array and returns it as a bin
 
 ### Calling Pushshift API
 
-Now that we have our database set up, we must find our images to download. <a href='pushshift.io>Pushshift</a> is an API that allows users to query for posts and comments from Reddit and receive the data in JSON. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, here we will focus on the `SubmissionCallByScore` method. 
+Now that we have our database set up, we must find our images to download. <a href='pushshift.io>Pushshift</a> is an API that allows users to query posts and comments from Reddit and receive the data in JSON form. I've created a class called `PS_Interface` to handle interactions with the API. While there are various methods in the class, here we will focus on the `SubmissionCallByScore` method. 
 
 ```Python
 class PSInterface:
@@ -96,13 +99,13 @@ The method `SubmissionCallByScore` has two arguments:
 * `count` - the number of posts you want added to the database
 * `subreddit` - the subreddit you want the posts from
 
-The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are then updated based on the lowest score post in the request and a new request is made. This update and query process continues until we have either collected enough new submissions to satisfy our `count` or have run out of submissions to query. Once one of those two occur, we return the list of submissions. 
+The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are updated based on the lowest score post in the request and a new request is made. This update and query process continues until we have either collected enough new submissions to satisfy our `count` or have run out of submissions to query. Once one of those two occur, we return the list of submissions. 
 
 In order to keep the class scaleable and reusable for future projects, the ```submission_call_by_score``` method (and all other methods) returns a list of dictionaries with all of the data the API provides. For the purposes of this project, we only need a subset of the data retreived in the API call so we will handle this filtering in our ```main()``` function. 
 
 
 ```python
-    subs = ["BelowTheDepths","OldSchoolCool","Gardening","Goth","Outrun","TheWayWeWere","Desert"]
+    subs = ["BelowTheDepths","Autumn","Outrun","TheWayWeWere"]
     target_vals = ['id', 'title', 'url', 'domain', 'subreddit', 'subreddit_id', 'full_link', 'created_utc', 'author','score']
     insert_str = '''INSERT INTO submissions (ID,Title,URL,URLDomain,Subreddit,SubredditID,PostURL,PostTime,PostAuthor,PostScore) 
         VALUES (?,?,?,?,?,?,?,?,?,?)'''
@@ -168,7 +171,7 @@ We use the following code to apply our class in our ```main``` method:
     for sub in subs:
         if not os.path.exists("D:/PhotoDB/"+sub):
             os.mkdir("D:/PhotoDB/"+sub)
-            query_str = "SELECT id, URL, Subreddit FROM submissions WHERE Subreddit = '{}' and (URL like '%.png' or URL like '%.jpg')                       and id not in (SELECT id FROM photos WHERE subreddit = '{}') ORDER BY PostScore DESC LIMIT 50;".format(sub,sub)
+            query_str = "SELECT id, URL, Subreddit FROM submissions WHERE Subreddit = '{}' and (URL like '%.jpeg' or URL like '%.png' or URL like '%.jpg') and id not in (SELECT id FROM photos WHERE subreddit = '{}') ORDER BY PostScore DESC LIMIT 50;".format(sub,sub)
         query = DBC.new_query(query_str)
 
         for x in query:

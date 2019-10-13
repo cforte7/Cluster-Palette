@@ -1,27 +1,27 @@
 
 # Background
 
-Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the three color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset and using the resulting clusters to determine the most prominant colors. Below you can see an example of the scatterplot created by taking a random sample of pixels from an image. 
+Machine learning algorithms are becoming an increasingly important aspect of analyzing data and providing users with enjoyable features and benefits. One application is the process of using clustering algorithms to identify the dominant colors in a photo. This is done by using the three color values that make up a pixel (RGB, LaB, etc.) as the three features in your dataset and using the resulting clusters to determine the most prominent colors. Below you can see an example of the scatterplot created by taking a random sample of pixels from an image. 
 
 <br> <img src='/static/OceanScatter.gif' width=400> <img src='/static/ocean.jpg' width=400><br>
 
 While there are various articles and blog posts that accomplish this already, there are two gaps in the methods that I see consistently.
 
 ### Issue #1 - Limited Photo Types for Proof of Concept
-The photographs used to demonstrate the methods have clearly defined color palletes that can easily be selected by humans. Below you can see the example images used for tutorials from <a href="https://buzzrobot.com/dominant-colors-in-an-image-using-k-means-clustering-3c7af4622036">Buzzrobot</a>, <a href="https://www.dataquest.io/blog/tutorial-colors-image-clustering-python/">DataQuest</a>, and <a href="https://towardsdatascience.com/extracting-colours-from-an-image-using-k-means-clustering-9616348712be">Towards Data Science</a>. You can reasonably assume that these photos with a stark separation of colors will produce clean sets of data with predictable results. This begs the question: what about the many pictures that do not fit this narrow mold? How can we be sure that these methods work as a more general solution?
+The photographs used to demonstrate the methods have clearly defined color palettes that can easily be selected by humans. Below you can see the example images used for tutorials from <a href="https://buzzrobot.com/dominant-colors-in-an-image-using-k-means-clustering-3c7af4622036">Buzzrobot</a>, <a href="https://www.dataquest.io/blog/tutorial-colors-image-clustering-python/">DataQuest</a>, and <a href="https://towardsdatascience.com/extracting-colours-from-an-image-using-k-means-clustering-9616348712be">Towards Data Science</a>. You can reasonably assume that these photos with a stark separation of colors will produce clean sets of data with predictable results. This begs the question: what about the many pictures that do not fit this narrow mold? How can we be sure that these methods work as a more general solution?
 
 <img src='/static/buzzrobot.jpg' width=200> <img src='/static/dataquest.png' width=200> <img src='/static/towards_data_science.png' width=400> 
 
 
 ### Issue #2 - Manual User Input
-In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this hueristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is? In addition to the inherent ambiguity in this process, this is not a scaleable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
+In the aforementioned articles, the programmers have to manually enter in the number of clusters. When you have such clearly defined colors and are running it on a few photos, this heuristic method is suitable. With our example photos, it is easy to see that the photos will require 5, 3 and 6 clusters respectively. This again poses a potential issue when trying to create a more robust application. Will this work suitably for photos that don't have clearly defined colors? What if we aren't sure what the most optimal number of clusters is? In addition to the inherent ambiguity in this process, this is not a scalable solution. Manually inputting the cluster count for each photo would be an incredibly time consuming task if you have many photos and has no reasonable path for automation.
 
 # Purpose
 In this paper I will demonstrate the process of automating the selection of the dominant colors from photos visualizing the results  from groups of photos. We will accomplish this by running clustering algorithms on groups of photos and plotting the resulting clusters.  Our use case will be scraping photos from specific Subreddits on <a href src='Reddit.com'>Reddit</a> and generating scatter plots of the clusters that are produced by a given subreddit's photos.  For those not familiar, a Subreddit can be thought of as a themed category where users submit links, pictures, or other internet content to be voted and commented on. 
 
 This process will include the following:
 1. Query the Pushshift API for the Reddit submissions in the target subreddits
-2. Download pictures from submissions that are identifited as being image-based
+2. Download pictures from submissions that are identified as being image-based
 3. Apply the Mean Shift Clustering Algorithm and store the results
 4. Create data visualizations for each Subreddit based on the clustering results
 
@@ -29,7 +29,7 @@ This process will include the following:
 
 ### Database Setup
 
-Before any analysis can be done, a sufficient amount of data must be gathered. For this applciation we would like to download and store  photos along with some metadata regarding the pictures. 
+Before any analysis can be done, a sufficient amount of data must be gathered. For this application we would like to download and store  photos along with some metadata regarding the pictures. 
 
 The first step is to develop the SQL database schema.
 
@@ -101,7 +101,7 @@ The method `SubmissionCallByScore` has two arguments:
 
 The method first checks our database for current entries to avoid any duplicates. Next the method will query the API for the highest ranked submissions, check if these are already stored in the database (ignoring them if they are). The query parameters are updated based on the lowest score post in the request and a new request is made. This update and query process continues until we have either collected enough new submissions to satisfy our `count` or have run out of submissions to query. Once one of those two occur, we return the list of submissions. 
 
-In order to keep the class scaleable and reusable for future projects, the ```submission_call_by_score``` method (and all other methods) returns a list of dictionaries with all of the data the API provides. For the purposes of this project, we only need a subset of the data retreived in the API call so we will handle this filtering in our ```main()``` function. 
+In order to keep the class scalable and reusable for future projects, the ```submission_call_by_score``` method (and all other methods) returns a list of dictionaries with all of the data the API provides. For the purposes of this project, we only need a subset of the data retrieved in the API call so we will handle this filtering in our ```main()``` function. 
 
 
 ```python
@@ -193,7 +193,7 @@ Based on this query we now have a list of the photos that we need to download so
 
 ### Clustering Analysis
 
-Continuing our theme of Class structure and application extenstion we will now examine our ```PhotoClustering``` Class and it's usage in ```main()```. 
+Continuing our theme of Class structure and application extension we will now examine our ```PhotoClustering``` Class and it's usage in ```main()```. 
 
 
 ```python
@@ -261,7 +261,7 @@ np.random.shuffle(I)
 I = I[:5000]
 I = color.rgb2lab([I])[0]
  ```
- Once we have our mutable numpy array we must perform some basic manipulations to prepare our data for the analysis. The first step is to store the shape of the photo and check for the dimensions. If the third dimension is 4, this means that the photo has its pixels stored in RGBA (A stands for Alpha, or transparency). If the alpha channel is present in the image, we will drop that dimension and update our ```p``` dimension to 3. We then reshape the array so that it becomes a two dimensional array with ```h*w``` rows and 3 columns. We then shuffle the rows and take the first 5000 rows in order to take a random sample of pixels from the photos. Once we have our sample set of data we call the ```color.rgb2lab()``` function from the scikit image module to convert the data from RGB values to LaB values. We make this conversion because when visualizing pixels in 3D space, the Lab space is much more suited to how the human eye perceives colors compared to RGB (another pitfall of comparable papers on this topic). <a href='https://en.wikipedia.org/wiki/CIELAB_color_space'>For more information regarding Lab Color Space you can read the Wikipedia page.</a>
+ Once we have our mutable numpy array we must perform some basic manipulations to prepare our data for the analysis. The first step is to store the shape of the photo and check for the dimensions. If the third dimension is 4, this means that the photo has its pixels stored in RGBA (A stands for Alpha, or transparency). If the alpha channel is present in the image, we will drop that dimension and update our ```p``` dimension to 3. We then reshape the array so that it becomes a two dimensional array with ```h*w``` rows and 3 columns. We then shuffle the rows and take the first 5000 rows in order to take a random sample of pixels from the photos. Once we have our sample set of data we call the ```color.rgb2lab()``` function from the scikit image module to convert the data from RGB values to Lab values. We make this conversion because when visualizing pixels in 3D space, the Lab space is much more suited to how the human eye perceives colors compared to RGB (another pitfall of comparable papers on this topic). <a href='https://en.wikipedia.org/wiki/CIELAB_color_space'>For more information regarding Lab Color Space you can read the Wikipedia page.</a>
  
  
  ```python
@@ -276,9 +276,9 @@ print("[Photo Clustering] Successful clustering for file "+file)
 return [file, subreddit, I, bandwidth, labels, cluster_centers_ms, cluster_wgts]
 ```
 
-With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistancy and reliability than the highly subjective method of human selection. The other main motivation is the suitibility for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph that we expect to see posted on Reddit will have these characteristics.
+With our data properly manipulated, we are ready to perform the clustering. For this process we will use the Mean Shift algorithm. There are a few motivations for choosing this algorithm specifically as opposed to K-Means found in the example articles listed at the beginning of the paper. The first is that the number of clusters created is determined by the algorithm itself and not by the user. Every photo is different and we cannot take a "one size fits all" approach to a number of clusters so having the algorithm produce this will increase our consistency and reliability than the highly subjective method of human selection. The other main motivation is the suitability for the given dataset. From the <a href='https://scikit-learn.org/stable/modules/clustering.html#overview-of-clustering-methods'>Scikit-Learn Documentation on Clustering</a>, the Mean Shift method's use case is "Many clusters, uneven cluster size, non-flat geometry". Using the example posted at the beginning of the write up, it is fair to say that a standard photograph that we expect to see posted on Reddit will have these characteristics.
 
-Now that we have selected our clutering method, let's take a look at the parameters. Our ```MeanShift``` class has one main parameter - the bandwidth. To understand the bandwidth, we first have to understand how the Mean Shift Algorithm functions. The algorithm first creates a <A href='https://en.wikipedia.org/wiki/Kernel_density_estimation'>Kernal Density Estimation</a> to estimate the probability distribution function of a set of data. The bandwidth determines the size of the area used to calculate a density for our KDE. As a larget bandwidth is used, our KDE will generate fewer, more populated clusters and vice versa. There is no single correct bandwidth and is entirely dependant on the dataset. Fortunately ```sklearn``` provides a way to automatically generate and bandwidth value based on the data provided and we implement this to further automate our process.
+Now that we have selected our clustering method, let's take a look at the parameters. Our ```MeanShift``` class has one main parameter - the bandwidth. To understand the bandwidth, we first have to understand how the Mean Shift Algorithm functions. The algorithm first creates a <A href='https://en.wikipedia.org/wiki/Kernel_density_estimation'>Kernal Density Estimation</a> to estimate the probability distribution function of a set of data. The bandwidth determines the size of the area used to calculate a density for our KDE. As a larger bandwidth is used, our KDE will generate fewer, more populated clusters and vice versa. There is no single correct bandwidth and is entirely dependent on the dataset. Fortunately ```sklearn``` provides a way to automatically generate and bandwidth value based on the data provided and we implement this to further automate our process.
 
 
 ### Results

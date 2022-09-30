@@ -1,3 +1,5 @@
+Note: This project was completed prior to any professional software engineering experience and as such does not reflect my current abilities as a programmer.
+
 
 # Background
 
